@@ -1,0 +1,59 @@
+# Data Redundancy Removal System - Execution Guide
+
+## Quick Start Overview
+This system is designed to process CSV data, remove duplicates, and provide a dashboard for monitoring.
+
+### 1. Prerequisites
+- Python 3.9+ installed
+- Node.js 18+ installed
+- PostgreSQL database (or a Supabase project)
+
+### 2. Backend Setup & Run
+```bash
+# Go to the backend folder
+cd backend
+
+# Create and activate virtual environment
+python -m venv venv
+source venv/bin/activate  # Linux/Mac
+# venv\Scripts\activate  # Windows
+
+# Install dependencies
+pip install -r requirements.txt
+
+# Create .env file with your database URL
+# Example: DATABASE_URL=postgresql://user:password@localhost/dbname
+
+# Run the server
+uvicorn main:app --reload
+```
+The API will be available at: http://localhost:8000
+
+### 3. Frontend Setup & Run
+```bash
+# Go to the frontend folder
+cd frontend
+
+# Install dependencies
+npm install
+
+# Run the development server
+npm run dev
+```
+The App will be available at: http://localhost:5173
+
+### 4. Running Tests
+```bash
+# From the project root
+source venv/bin/activate
+export PYTHONPATH=.
+pytest backend/tests/test_main.py
+```
+
+### 5. Deployment Notes
+- **Database**: Use Supabase for a hosted PostgreSQL instance.
+- **Backend**: Deploy to Render or Heroku.
+- **Frontend**: Deploy to Vercel or Netlify.
+
+---
+For more details, see README.md.

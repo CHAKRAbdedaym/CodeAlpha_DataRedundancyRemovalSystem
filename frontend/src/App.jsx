@@ -10,10 +10,9 @@ import Duplicates from './pages/Duplicates';
 function App() {
   return (
     <Router>
-      <div className="min-h-screen bg-[#F8FAFC] flex">
+      <div style={{ display: 'flex', minHeight: '100vh', position: 'relative' }}>
         <Navbar />
-        
-        <main className="ml-64 flex-1 p-10 max-w-7xl">
+        <main style={{ marginLeft: '260px', flex: 1, padding: '40px', position: 'relative', zIndex: 1 }}>
           <Routes>
             <Route path="/" element={<Dashboard />} />
             <Route path="/upload" element={<UploadPage />} />

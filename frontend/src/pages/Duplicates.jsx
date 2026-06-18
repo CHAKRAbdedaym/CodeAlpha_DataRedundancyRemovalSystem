@@ -1,79 +1,67 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { AlertTriangle, ShieldX, Ghost, Mail, Phone, Calendar } from 'lucide-react';
+import { AlertTriangle, ShieldX, Ghost, Mail, Phone } from 'lucide-react';
+
+const API = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
 
 const Duplicates = () => {
   const [duplicates, setDuplicates] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const fetchDuplicates = async () => {
-      try {
-        const response = await axios.get('http://localhost:8000/duplicates');
-        setDuplicates(response.data);
-      } catch (err) {
-        console.error('Failed to fetch duplicates');
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchDuplicates();
+    axios.get(`${API}/duplicates`).then(r => setDuplicates(r.data)).catch(() => {}).finally(() => setLoading(false));
   }, []);
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
+    <div className="fade-in" style={{ maxWidth: '1200px' }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '28px', flexWrap: 'wrap', gap: '16px' }}>
         <div>
-          <h2 className="text-3xl font-bold text-gray-900 tracking-tight">Duplicate Report</h2>
-          <p className="text-gray-500">Inventory of rejected records and redundancy patterns</p>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '6px' }}>
+            <ShieldX size={22} color="#ff4757" />
+            <h2 style={{ fontSize: '26px', fontWeight: 800, background: 'linear-gradient(135deg,#ff4757,#ffa502)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>Duplicate Report</h2>
+          </div>
+          <p style={{ color: '#475569', fontSize: '14px' }}>AI-detected redundant records blocked from the database</p>
         </div>
-        <div className="px-4 py-2 bg-red-50 text-red-700 rounded-xl text-sm font-bold border border-red-100 flex items-center gap-2">
-          <ShieldX size={18} />
-          {duplicates.length} Prevented Entries
+        <div style={{ padding: '10px 18px', borderRadius: '10px', background: 'rgba(255,71,87,0.08)', border: '1px solid rgba(255,71,87,0.2)', display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <AlertTriangle size={16} color="#ff4757" />
+          <span style={{ color: '#ff4757', fontWeight: 700, fontSize: '14px' }}>{duplicates.length} Entries Blocked</span>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '16px' }}>
         {loading ? (
           Array(6).fill(0).map((_, i) => (
-            <div key={i} className="h-48 bg-white rounded-3xl border border-gray-100 animate-pulse"></div>
+            <div key={i} className="ai-card" style={{ height: '180px', animation: 'pulse 1.5s ease-in-out infinite' }} />
           ))
         ) : duplicates.length > 0 ? (
-          duplicates.map((dup) => (
-            <div key={dup.id} className="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm hover:border-red-200 transition-all group">
-              <div className="flex items-start justify-between mb-4">
-                <div className="p-3 bg-red-50 text-red-600 rounded-xl group-hover:bg-red-600 group-hover:text-white transition-colors">
-                  <AlertTriangle size={20} />
+          duplicates.map((dup, i) => (
+            <div key={dup.id || i} className="ai-card fade-in" style={{ padding: '20px', animationDelay: `${i * 30}ms` }}>
+              <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: '14px' }}>
+                <div style={{ padding: '10px', background: 'rgba(255,71,87,0.1)', borderRadius: '10px', boxShadow: '0 0 15px rgba(255,71,87,0.15)' }}>
+                  <AlertTriangle size={18} color="#ff4757" />
                 </div>
-                <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest flex items-center gap-1">
-                  <Calendar size={10} /> {new Date(dup.created_at).toLocaleDateString()}
-                </p>
+                <span className="badge badge-red">{dup.reason || 'Duplicate'}</span>
               </div>
-              
-              <h4 className="text-lg font-bold text-gray-900 truncate mb-2">{dup.name || 'Anonymous User'}</h4>
-              
-              <div className="space-y-2 mb-4">
-                <div className="flex items-center gap-2 text-sm text-gray-500">
-                  <Mail size={14} className="shrink-0" />
-                  <span className="truncate">{dup.email}</span>
+              <h4 style={{ fontSize: '16px', fontWeight: 700, color: '#e2e8f0', marginBottom: '12px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                {dup.name || 'Unknown'}
+              </h4>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <Mail size={13} color="#475569" style={{ flexShrink: 0 }} />
+                  <span style={{ fontSize: '13px', color: '#64748b', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{dup.email}</span>
                 </div>
-                <div className="flex items-center gap-2 text-sm text-gray-500">
-                  <Phone size={14} className="shrink-0" />
-                  <span>{dup.phone}</span>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <Phone size={13} color="#475569" style={{ flexShrink: 0 }} />
+                  <span style={{ fontSize: '13px', color: '#64748b' }}>{dup.phone}</span>
                 </div>
-              </div>
-
-              <div className="pt-4 border-t border-gray-50">
-                <p className="text-xs font-semibold text-red-600 bg-red-50 inline-block px-3 py-1 rounded-full">
-                  {dup.reason}
-                </p>
               </div>
             </div>
           ))
         ) : (
-          <div className="col-span-full bg-gray-50 p-20 rounded-3xl border-2 border-dashed border-gray-200 text-center">
-            <Ghost className="mx-auto text-gray-300 mb-4" size={48} />
-            <p className="text-gray-500 font-medium text-lg">No duplicates found. The system is clean!</p>
+          <div className="ai-card" style={{ gridColumn: '1 / -1', padding: '80px', textAlign: 'center' }}>
+            <Ghost size={56} color="#1e293b" style={{ margin: '0 auto 16px' }} />
+            <p style={{ color: '#475569', fontSize: '18px', fontWeight: 600 }}>No duplicates found.</p>
+            <p style={{ color: '#334155', fontSize: '14px', marginTop: '8px' }}>Your database is clean. The AI has spoken.</p>
           </div>
         )}
       </div>

@@ -1,143 +1,136 @@
 import React, { useState } from 'react';
 import axios from 'axios';
-import { Upload, FileUp, CheckCircle, AlertCircle, Loader2 } from 'lucide-react';
+import { Upload, FileUp, CheckCircle, AlertCircle, Cpu } from 'lucide-react';
+
+const API = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
 
 const CSVUpload = ({ onUploadSuccess }) => {
   const [file, setFile] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [result, setResult] = useState(null);
+  const [dragging, setDragging] = useState(false);
 
-  const handleDragOver = (e) => {
-    e.preventDefault();
-  };
-
+  const handleDragOver = (e) => { e.preventDefault(); setDragging(true); };
+  const handleDragLeave = () => setDragging(false);
   const handleDrop = (e) => {
-    e.preventDefault();
-    const droppedFile = e.dataTransfer.files[0];
-    if (droppedFile && droppedFile.name.endsWith('.csv')) {
-      setFile(droppedFile);
-      setError(null);
-    } else {
-      setError('Please upload a valid CSV file.');
-    }
+    e.preventDefault(); setDragging(false);
+    const f = e.dataTransfer.files[0];
+    if (f?.name.endsWith('.csv')) { setFile(f); setError(null); }
+    else setError('Please upload a valid .csv file.');
   };
-
-  const handleFileChange = (e) => {
-    const selectedFile = e.target.files[0];
-    if (selectedFile) {
-      setFile(selectedFile);
-      setError(null);
-    }
-  };
+  const handleFileChange = (e) => { if (e.target.files[0]) { setFile(e.target.files[0]); setError(null); } };
 
   const handleSubmit = async () => {
     if (!file) return;
-
-    setLoading(true);
-    setError(null);
-    setResult(null);
-
+    setLoading(true); setError(null); setResult(null);
     const formData = new FormData();
     formData.append('file', file);
-
     try {
-      const response = await axios.post('http://localhost:8000/upload-csv', formData);
-      setResult(response.data);
-      if (onUploadSuccess) onUploadSuccess(response.data);
+      const { data } = await axios.post(`${API}/upload-csv`, formData);
+      setResult(data);
+      if (onUploadSuccess) onUploadSuccess(data);
     } catch (err) {
-      setError(err.response?.data?.detail || 'Failed to upload CSV file.');
+      setError(err.response?.data?.detail || 'Failed to process CSV.');
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="max-w-2xl mx-auto space-y-6">
-      <div 
+    <div style={{ maxWidth: '700px', margin: '0 auto', display: 'flex', flexDirection: 'column', gap: '20px' }}>
+      {/* Drop zone */}
+      <div
+        className={`drag-zone ${dragging ? 'dragging' : ''}`}
         onDragOver={handleDragOver}
+        onDragLeave={handleDragLeave}
         onDrop={handleDrop}
-        className={`border-2 border-dashed rounded-3xl p-10 flex flex-col items-center justify-center transition-all ${
-          file ? 'border-blue-400 bg-blue-50/30' : 'border-gray-200 bg-gray-50/50 hover:border-gray-300'
-        }`}
+        onClick={() => document.getElementById('fileInput').click()}
+        style={{ padding: '60px 40px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '16px', cursor: 'pointer', background: file ? 'rgba(0,212,255,0.03)' : 'transparent', borderColor: file ? 'rgba(0,212,255,0.5)' : undefined }}
       >
-        <div className={`p-4 rounded-full mb-4 ${file ? 'bg-blue-100 text-blue-600' : 'bg-gray-100 text-gray-400'}`}>
-          {file ? <FileUp size={32} /> : <Upload size={32} />}
+        <div style={{
+          width: '72px', height: '72px',
+          background: file ? 'rgba(0,212,255,0.12)' : 'rgba(255,255,255,0.04)',
+          borderRadius: '20px',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          boxShadow: file ? '0 0 30px rgba(0,212,255,0.3)' : 'none',
+          transition: 'all 0.3s ease',
+        }}>
+          {file ? <FileUp size={32} color="#00d4ff" /> : <Upload size={32} color="#475569" />}
         </div>
-        
         {file ? (
-          <div className="text-center">
-            <p className="text-gray-900 font-semibold mb-1">{file.name}</p>
-            <p className="text-sm text-gray-500">{(file.size / 1024).toFixed(2)} KB</p>
+          <div style={{ textAlign: 'center' }}>
+            <p style={{ color: '#00d4ff', fontWeight: 700, fontSize: '16px', marginBottom: '6px' }}>{file.name}</p>
+            <p style={{ color: '#475569', fontSize: '13px' }}>{(file.size / 1024).toFixed(2)} KB · Ready to process</p>
           </div>
         ) : (
-          <div className="text-center">
-            <p className="text-gray-900 font-semibold mb-1">Upload your CSV dataset</p>
-            <p className="text-sm text-gray-500">Drag and drop or click to browse</p>
+          <div style={{ textAlign: 'center' }}>
+            <p style={{ color: '#94a3b8', fontWeight: 600, fontSize: '16px', marginBottom: '6px' }}>Drop your CSV dataset here</p>
+            <p style={{ color: '#475569', fontSize: '13px' }}>or click to browse files</p>
           </div>
         )}
-        
-        <input 
-          type="file" 
-          id="fileInput" 
-          className="hidden" 
-          accept=".csv" 
-          onChange={handleFileChange}
-        />
-        <label 
-          htmlFor="fileInput"
-          className="mt-6 px-6 py-2 bg-white border border-gray-200 rounded-xl text-sm font-medium text-gray-700 cursor-pointer hover:bg-gray-50 transition-colors"
-        >
+        <input type="file" id="fileInput" style={{ display: 'none' }} accept=".csv" onChange={handleFileChange} />
+        <label htmlFor="fileInput" style={{
+          padding: '8px 20px', borderRadius: '8px', fontSize: '13px', fontWeight: 600,
+          background: 'rgba(0,212,255,0.08)', border: '1px solid rgba(0,212,255,0.2)',
+          color: '#00d4ff', cursor: 'pointer', transition: 'all 0.2s',
+        }} onClick={e => e.stopPropagation()}>
           {file ? 'Change File' : 'Select File'}
         </label>
       </div>
 
+      {/* Process button */}
       <button
         onClick={handleSubmit}
         disabled={!file || loading}
-        className={`w-full py-4 rounded-2xl font-bold flex items-center justify-center gap-2 transition-all ${
-          !file || loading 
-            ? 'bg-gray-100 text-gray-400 cursor-not-allowed' 
-            : 'bg-blue-600 text-white hover:bg-blue-700 shadow-lg shadow-blue-600/20'
-        }`}
+        className={!file || loading ? '' : 'btn-glow'}
+        style={{
+          width: '100%', padding: '14px', borderRadius: '12px', fontWeight: 700, fontSize: '15px',
+          cursor: !file || loading ? 'not-allowed' : 'pointer',
+          display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px',
+          background: !file || loading ? 'rgba(255,255,255,0.04)' : undefined,
+          border: !file || loading ? '1px solid rgba(255,255,255,0.06)' : 'none',
+          color: !file || loading ? '#475569' : undefined,
+          boxShadow: !file || loading ? 'none' : undefined,
+        }}
       >
         {loading ? (
           <>
-            <Loader2 className="animate-spin" size={20} />
-            Processing Records...
+            <div className="spinner" style={{ width: '20px', height: '20px', borderWidth: '2px' }} />
+            AI Processing Records…
           </>
         ) : (
-          'Process Dataset'
+          <>
+            <Cpu size={18} />
+            Process Dataset with AI
+          </>
         )}
       </button>
 
       {error && (
-        <div className="p-4 bg-red-50 border border-red-100 rounded-2xl flex items-center gap-3 text-red-600">
-          <AlertCircle size={20} />
-          <p className="text-sm font-medium">{error}</p>
+        <div style={{ padding: '16px', background: 'rgba(255,71,87,0.08)', border: '1px solid rgba(255,71,87,0.2)', borderRadius: '12px', display: 'flex', alignItems: 'center', gap: '12px' }}>
+          <AlertCircle size={20} color="#ff4757" />
+          <p style={{ color: '#ff4757', fontSize: '14px', fontWeight: 500 }}>{error}</p>
         </div>
       )}
 
       {result && (
-        <div className="p-6 bg-green-50 border border-green-100 rounded-2xl space-y-4 animate-in fade-in slide-in-from-bottom-4 duration-500">
-          <div className="flex items-center gap-3 text-green-700">
-            <CheckCircle size={24} />
-            <p className="font-bold">File Processed Successfully</p>
+        <div className="ai-card fade-in" style={{ padding: '24px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '20px' }}>
+            <CheckCircle size={24} color="#00ff88" />
+            <p style={{ fontWeight: 700, color: '#00ff88', fontSize: '16px' }}>Dataset Processed Successfully</p>
           </div>
-          
-          <div className="grid grid-cols-3 gap-4">
-            <div className="bg-white p-3 rounded-xl border border-green-100">
-              <p className="text-xs text-gray-500 mb-1 uppercase font-bold tracking-tighter">Total</p>
-              <p className="text-lg font-bold text-gray-900">{result.summary.total_records}</p>
-            </div>
-            <div className="bg-white p-3 rounded-xl border border-green-100">
-              <p className="text-xs text-gray-500 mb-1 uppercase font-bold tracking-tighter text-blue-600">Unique</p>
-              <p className="text-lg font-bold text-blue-600">{result.summary.unique_records}</p>
-            </div>
-            <div className="bg-white p-3 rounded-xl border border-green-100">
-              <p className="text-xs text-gray-500 mb-1 uppercase font-bold tracking-tighter text-red-600">Duplicate</p>
-              <p className="text-lg font-bold text-red-600">{result.summary.duplicate_records}</p>
-            </div>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '12px' }}>
+            {[
+              { label: 'Total', value: result.summary.total_records, color: '#00d4ff' },
+              { label: 'Unique', value: result.summary.unique_records, color: '#00ff88' },
+              { label: 'Duplicate', value: result.summary.duplicate_records, color: '#ff4757' },
+            ].map((s) => (
+              <div key={s.label} style={{ padding: '16px', borderRadius: '12px', background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)', textAlign: 'center' }}>
+                <p style={{ fontSize: '11px', color: '#475569', textTransform: 'uppercase', letterSpacing: '0.08em', fontWeight: 600, marginBottom: '8px' }}>{s.label}</p>
+                <p style={{ fontSize: '28px', fontWeight: 800, color: s.color }}>{s.value}</p>
+              </div>
+            ))}
           </div>
         </div>
       )}

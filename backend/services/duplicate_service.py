@@ -1,6 +1,6 @@
 from sqlalchemy.orm import Session
-from ..models import Student
-from ..schemas import DuplicateRecord
+from models import Student
+from schemas import DuplicateRecord
 from typing import List, Tuple, Dict
 
 def check_database_duplicates(db: Session, records: List[Dict]) -> Tuple[List[Dict], List[DuplicateRecord]]:

@@ -1,7 +1,7 @@
 import pandas as pd
 import io
 from typing import List, Tuple, Dict
-from ..schemas import StudentCreate, DuplicateRecord
+from schemas import StudentCreate, DuplicateRecord
 from email_validator import validate_email, EmailNotValidError
 
 def validate_csv_structure(df: pd.DataFrame) -> List[str]:

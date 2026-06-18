@@ -6,11 +6,11 @@ import pandas as pd
 import io
 import os
 
-from .database import engine, Base, get_db
-from .models import Student, UploadHistory, DuplicateRecord as DuplicateModel
-from .schemas import Student as StudentSchema, UploadHistory as UploadHistorySchema, Statistics, UploadResponse, DuplicateRecord
-from .services.csv_service import process_csv_file
-from .services.duplicate_service import check_database_duplicates
+from database import engine, Base, get_db
+from models import Student, UploadHistory, DuplicateRecord as DuplicateModel
+from schemas import Student as StudentSchema, UploadHistory as UploadHistorySchema, Statistics, UploadResponse, DuplicateRecord
+from services.csv_service import process_csv_file
+from services.duplicate_service import check_database_duplicates
 
 # Create database tables (only if not running tests)
 if os.getenv("ENV") != "test":

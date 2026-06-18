@@ -50,10 +50,10 @@ export PYTHONPATH=.
 pytest backend/tests/test_main.py
 ```
 
-### 5. Deployment Notes
-- **Database**: Use Supabase for a hosted PostgreSQL instance.
-- **Backend**: Deploy to Render or Heroku.
-- **Frontend**: Deploy to Vercel or Netlify.
+### 6. IDE Configuration (VS Code / PyCharm)
+If you see "Missing Import" or "Cannot find module" errors in your IDE:
+- **VS Code**: Press `Ctrl+Shift+P`, type "Python: Select Interpreter", and choose the one inside `backend/venv`.
+- **PyCharm**: Go to Settings -> Project -> Python Interpreter and add the interpreter from `backend/venv/bin/python`.
 
 ---
 For more details, see README.md.
